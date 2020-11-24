@@ -41,7 +41,7 @@ public class SnowflakesView : UIView {
         self.animator2?.addBehavior(gravityBehaviour2)
     }
 
-    func changeGravityDirection() {
+    @objc func changeGravityDirection() {
         DispatchQueue.main.async {
             if self.gravityPullRight { // Simulate wind, by changing gravity direction.
                 self.gravityBehaviour1.gravityDirection.dx += 0.4
