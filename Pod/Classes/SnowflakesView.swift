@@ -16,12 +16,12 @@ public class SnowflakesView : UIView {
     var gravityBehaviour2 = UIGravityBehavior()
     var gravityPullRight = false
 
-    var timer : NSTimer?
+    var timer : Timer?
 
     override public init (frame : CGRect) {
         super.init(frame : frame)
         initGravityAnimator()
-        timer = NSTimer.scheduledTimerWithTimeInterval(Double(arc4random_uniform(100))/100, target: self, selector: "changeGravityDirection", userInfo: nil, repeats: true)
+        timer = Timer.scheduledTimer(timeInterval: Double(arc4random_uniform(100))/100, target: self, selector: "changeGravityDirection", userInfo: nil, repeats: true)
     }
 
     required public init(coder aDecoder: NSCoder) {
@@ -42,7 +42,7 @@ public class SnowflakesView : UIView {
     }
 
     func changeGravityDirection() {
-        dispatch_async(dispatch_get_main_queue()){
+        DispatchQueue.main.async {
             if self.gravityPullRight { // Simulate wind, by changing gravity direction.
                 self.gravityBehaviour1.gravityDirection.dx += 0.4
                 self.gravityBehaviour2.gravityDirection.dx += 0.5
@@ -53,12 +53,12 @@ public class SnowflakesView : UIView {
             self.gravityPullRight = !self.gravityPullRight
         }
         if(self.snowflakes.count < 150) {
-            dispatch_async(dispatch_get_main_queue()) {
+            DispatchQueue.main.async {
                 self.addNewSnowflake()
             }
         }
         timer?.invalidate()
-        timer = NSTimer.scheduledTimerWithTimeInterval(Double(arc4random_uniform(100))/100, target: self, selector: "changeGravityDirection", userInfo: nil, repeats: true)
+        timer = Timer.scheduledTimer(timeInterval: Double(arc4random_uniform(100))/100, target: self, selector: "changeGravityDirection", userInfo: nil, repeats: true)
     }
 
     func addNewSnowflake() {
@@ -74,11 +74,13 @@ public class SnowflakesView : UIView {
         }
 
         snowflakes.append(snowflake)
-        startSnowflakeLifecycle(snowflake)
+        startSnowflakeLifecycle(snowflake: snowflake)
     }
 
     func startSnowflakeLifecycle(snowflake: UIView) {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(Double(arc4random_uniform(100)+500)/100 * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
+        
+        let double: Double = Double(arc4random_uniform(100)+500)/100 * Double(NSEC_PER_SEC)
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + double, execute: {
             // Remove the snowflake.
             self.gravityBehaviour1.removeItem(snowflake)
             self.gravityBehaviour2.removeItem(snowflake)
@@ -87,16 +89,17 @@ public class SnowflakesView : UIView {
 
             // Spawn a new snowflake
             self.addNewSnowflake()
-        }
+        })
     }
     
-    override public func hitTest(point: CGPoint, withEvent event: UIEvent?) -> UIView? {
-		let hitView = super.hitTest(point, withEvent: event)
-		
-		if hitView == self {
-			return nil
-		}
-		
-		return hitView
-	}
+    
+    public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let hitView = super.hitTest(point, with: event)
+        
+        if hitView == self {
+            return nil
+        }
+        
+        return hitView
+    }
 }
